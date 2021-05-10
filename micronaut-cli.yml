@@ -1,0 +1,6 @@
+applicationType: grpc
+defaultPackage: com.mikkaeru
+testFramework: junit
+sourceLanguage: kotlin
+buildTool: gradle_kotlin
+features: [annotation-api, app-name, data, data-jpa, gradle, grpc, hamcrest, jdbc-hikari, junit, kotlin, kotlin-application, logback, mysql, readme, shade, testcontainers, yaml]
