@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.mikkaeru";
+option java_outer_classname = "KeymanagerGrpc";
+
+package com.mikkaeru;
+
+service KeymanagerService {
+  rpc send (KeymanagerRequest) returns (KeymanagerReply) {}
+
+  rpc registerPixKey (KeyPixRequest) returns (KeyPixResponse) {}
+}
+
+message KeyPixRequest {
+  string clientId = 1;
+  string value = 2;
+  KeyType keyType = 3;
+  AccountType accountType = 4;
+
+  enum KeyType {
+    RANDOM_KEY = 0;
+    CPF = 1;
+    PHONE = 2;
+    EMAIL = 3;
+  }
+
+  enum AccountType {
+    SAVINGS_ACCOUNT = 0;
+    CURRENT_ACCOUNT = 1;
+  }
+}
+
+message KeyPixResponse {
+  string pixId = 1;
+}
+
+message KeymanagerRequest {
+  string name = 1;
+}
+
+message KeymanagerReply {
+  string message = 1;
+}

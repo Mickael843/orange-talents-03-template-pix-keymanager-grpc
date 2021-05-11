@@ -15,6 +15,11 @@ group = "com.mikkaeru"
 
 val kotlinVersion= project.properties["kotlinVersion"]
 
+//allOpen {
+//    annotation("io.micronaut.http.annotation.Singleton")
+//    annotation("io.micronaut.http.annotation.Controller")
+//}
+
 repositories {
     mavenCentral()
 }
@@ -30,6 +35,7 @@ micronaut {
 dependencies {
     kapt("io.micronaut.data:micronaut-data-processor")
     implementation("io.micronaut:micronaut-runtime")
+    implementation("io.micronaut:micronaut-http-client")
     implementation("io.micronaut.data:micronaut-data-hibernate-jpa")
     implementation("io.micronaut.grpc:micronaut-grpc-runtime")
     implementation("io.micronaut.kotlin:micronaut-kotlin-runtime")
@@ -42,7 +48,7 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:mysql")
     testImplementation("org.testcontainers:testcontainers")
-    implementation("io.micronaut:micronaut-validation")
+    implementation("io.micronaut.beanvalidation:micronaut-hibernate-validator")
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
     testImplementation("org.hamcrest:hamcrest")
     testImplementation("io.micronaut:micronaut-http-client")
