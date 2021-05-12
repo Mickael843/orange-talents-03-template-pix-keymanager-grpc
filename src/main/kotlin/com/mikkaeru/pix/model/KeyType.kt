@@ -1,26 +1,28 @@
 package com.mikkaeru.pix.model
 
-import io.grpc.Status
-import java.util.*
+import com.mikkaeru.pix.shared.exception.InvalidArgumentException
 import java.util.regex.Pattern
 
 enum class KeyType {
 
     CPF {
-        override fun validate(key: String?): Optional<RuntimeException> {
-            if (key!!.matches("^[0-9]{11}$".toRegex())) {
-                return Optional.empty()
+        override fun validate(key: String?) {
+            if (key.isNullOrBlank()) {
+                throw InvalidArgumentException("A chave deve ser informada")
             }
 
-            return Optional.of(Status.INVALID_ARGUMENT
-                .withDescription("CPF invalido!")
-                .asRuntimeException())
+            if (!key.matches("^[0-9]{11}$".toRegex())) {
+                throw InvalidArgumentException("CPF invalido")
+            }
         }
-
     },
 
     EMAIL {
-        override fun validate(key: String?): Optional<RuntimeException> {
+        override fun validate(key: String?) {
+            if (key.isNullOrBlank()) {
+                throw InvalidArgumentException("A chave deve ser informada")
+            }
+
             val isValid = Pattern.compile(
                 "^(([\\w-]+\\.)+[\\w-]+|([a-zA-Z]|[\\w-]{2,}))@"
                         + "((([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\.([0-1]?"
@@ -28,44 +30,34 @@ enum class KeyType {
                         + "([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\.([0-1]?"
                         + "[0-9]{1,2}|25[0-5]|2[0-4][0-9]))|"
                         + "([a-zA-Z]+[\\w-]+\\.)+[a-zA-Z]{2,4})$"
-            ).matcher(key!!).matches()
+            ).matcher(key).matches()
 
-            if (isValid) {
-                return Optional.empty()
+            if (!isValid) {
+                throw InvalidArgumentException("Email invalido")
             }
-
-            return Optional.of(Status.INVALID_ARGUMENT
-                .withDescription("Email invalido!")
-                .asRuntimeException())
         }
-
     },
 
     PHONE {
-        override fun validate(key: String?): Optional<RuntimeException> {
-            if (key!!.matches("^\\+[1-9][0-9]\\d{1,14}\$".toRegex())) {
-                return Optional.empty()
+        override fun validate(key: String?) {
+            if (key.isNullOrBlank()) {
+                throw InvalidArgumentException("A chave deve ser informada")
             }
 
-            return Optional.of(Status.INVALID_ARGUMENT
-                .withDescription("Numero de telefone invalido!")
-                .asRuntimeException())
+            if (!key.matches("^\\+[1-9][0-9]\\d{1,14}\$".toRegex())) {
+                throw InvalidArgumentException("Numero de telefone invalido!")
+            }
         }
-
     },
 
     RANDOM_KEY {
-        override fun validate(key: String?): Optional<RuntimeException> {
-            if (key.isNullOrBlank()) {
-                return Optional.empty()
+        override fun validate(key: String?) {
+            if (!key.isNullOrBlank()) {
+                throw InvalidArgumentException("Não é necessário informar a chave para geração randômica")
             }
-
-            return Optional.of(Status.INVALID_ARGUMENT
-                .withDescription("Não é necessário informar a chave para geração randômica")
-                .asRuntimeException())
         }
 
     };
 
-    abstract fun validate(key: String?): Optional<RuntimeException>
+    abstract fun validate(key: String?)
 }

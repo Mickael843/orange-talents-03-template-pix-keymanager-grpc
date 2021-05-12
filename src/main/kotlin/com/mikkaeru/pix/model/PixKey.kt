@@ -4,10 +4,8 @@ import org.hibernate.annotations.CreationTimestamp
 import java.time.OffsetDateTime
 import java.time.OffsetDateTime.now
 import java.util.UUID.randomUUID
-import javax.persistence.Column
-import javax.persistence.Embedded
-import javax.persistence.Entity
-import javax.persistence.Id
+import javax.persistence.*
+import javax.persistence.EnumType.STRING
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
 
@@ -19,10 +17,12 @@ class PixKey(
     val clientId: String,
 
     @field:NotNull
+    @Enumerated(STRING)
     @Column(nullable = false)
     val keyType: KeyType,
 
     @field:NotBlank
+    @Enumerated(STRING)
     @Column(nullable = false)
     val accountType: AccountType,
 

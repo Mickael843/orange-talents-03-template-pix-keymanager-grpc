@@ -1,4 +1,4 @@
-package com.mikkaeru.pix.anotation
+package com.mikkaeru.pix.shared.anotation
 
 import javax.validation.Constraint
 import javax.validation.ReportAsSingleViolation

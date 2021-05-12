@@ -1,11 +1,11 @@
 package com.mikkaeru.pix.dto
 
-import com.mikkaeru.pix.anotation.ValidUUID
 import com.mikkaeru.pix.model.AccountType
 import com.mikkaeru.pix.model.AssociatedAccount
 import com.mikkaeru.pix.model.KeyType
 import com.mikkaeru.pix.model.KeyType.RANDOM_KEY
 import com.mikkaeru.pix.model.PixKey
+import com.mikkaeru.pix.shared.anotation.ValidUUID
 import io.micronaut.core.annotation.Introspected
 import java.util.*
 import javax.validation.constraints.NotBlank

@@ -1,4 +1,4 @@
-package com.mikkaeru.pix
+package com.mikkaeru.pix.extensions
 
 import com.mikkaeru.KeyPixRequest
 import com.mikkaeru.KeyPixRequest.AccountType.UNKNOWN_ACCOUNT_TYPE

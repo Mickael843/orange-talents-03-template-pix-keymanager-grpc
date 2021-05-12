@@ -1,30 +1,37 @@
-package com.mikkaeru.pix
+package com.mikkaeru.pix.endpoint
 
 import com.mikkaeru.KeyPixRequest
 import com.mikkaeru.KeyPixResponse
 import com.mikkaeru.KeymanagerServiceGrpc
 import com.mikkaeru.pix.client.ItauClient
 import com.mikkaeru.pix.dto.KeyRequest
-import com.mikkaeru.pix.model.KeyType.valueOf
+import com.mikkaeru.pix.extensions.toModel
 import com.mikkaeru.pix.model.PixKey
 import com.mikkaeru.pix.repository.PixKeyRepository
-import io.grpc.Status
+import com.mikkaeru.pix.shared.ExceptionHandler
+import com.mikkaeru.pix.shared.exception.ClientNotFoundException
+import com.mikkaeru.pix.shared.exception.ExistingPixKeyException
+import com.mikkaeru.pix.shared.exception.UnknownException
 import io.grpc.stub.StreamObserver
+import io.micronaut.validation.Validated
 import javax.inject.Singleton
+import javax.validation.Valid
 
 @Singleton
-open class KeyManager(
+@Validated
+@ExceptionHandler
+class KeyManager(
     private val repository: PixKeyRepository,
     private val itauClient: ItauClient
 ): KeymanagerServiceGrpc.KeymanagerServiceImplBase() {
 
     override fun registerPixKey(request: KeyPixRequest?, responseObserver: StreamObserver<KeyPixResponse>?) {
 
-        valueOf(request!!.keyType.name).validate(request.value).ifPresent {
-            responseObserver?.onError(it)
+        if (request?.accountType == KeyPixRequest.AccountType.UNKNOWN_ACCOUNT_TYPE) {
+            throw UnknownException("Tipo da conta não pode ser desconhecido")
         }
 
-        val pixKey = register(request.toModel(), responseObserver)
+        val pixKey = register(request!!.toModel(), responseObserver)
 
         responseObserver?.onNext(
             KeyPixResponse.newBuilder()
@@ -36,24 +43,21 @@ open class KeyManager(
         responseObserver?.onCompleted()
     }
 
-    private fun register(keyRequest: KeyRequest, responseObserver: StreamObserver<KeyPixResponse>?): PixKey {
+    private fun register(@Valid keyRequest: KeyRequest, responseObserver: StreamObserver<KeyPixResponse>?): PixKey {
+        keyRequest.run {
+            type!!.validate(key)
+        }
+
         if (repository.existsByValue(keyRequest.key)) {
-            responseObserver?.onError(Status.ALREADY_EXISTS
-                .withDescription("Chave já cadastrada")
-                .asRuntimeException())
+            throw ExistingPixKeyException("Chave pix ${keyRequest.key} existente")
         }
 
         val response = itauClient.findAccountById(keyRequest.clientId, keyRequest.accountType!!.equivalentName)
 
-        val account = response.body()?.toModel()
+        val account = response.body()?.toModel() ?: throw ClientNotFoundException("Cliente não encontrado")
 
-        if (account == null) {
-            responseObserver?.onError(Status.NOT_FOUND
-                .withDescription("Conta não encontrada!")
-                .asRuntimeException())
-        }
+        val pixKey = keyRequest.toModel(account)
 
-        val pixKey = keyRequest.toModel(account!!)
         return repository.save(pixKey)
     }
 }
