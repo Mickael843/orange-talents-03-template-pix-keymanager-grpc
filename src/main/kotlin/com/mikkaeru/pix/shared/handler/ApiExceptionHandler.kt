@@ -1,11 +1,10 @@
 package com.mikkaeru.pix.shared.handler
 
-import com.mikkaeru.pix.shared.exception.ApiException
 import io.grpc.Status
 
-interface ApiExceptionHandler<E: ApiException> {
+interface ApiExceptionHandler<E: RuntimeException> {
 
-    fun handle(e: E): Status
+    fun handle(e: RuntimeException): Status
 
-    fun supports(e: ApiException): Boolean
+    fun supports(e: RuntimeException): Boolean
 }

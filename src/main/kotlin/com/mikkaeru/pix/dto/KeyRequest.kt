@@ -5,7 +5,6 @@ import com.mikkaeru.pix.model.AssociatedAccount
 import com.mikkaeru.pix.model.KeyType
 import com.mikkaeru.pix.model.KeyType.RANDOM_KEY
 import com.mikkaeru.pix.model.PixKey
-import com.mikkaeru.pix.shared.anotation.ValidUUID
 import io.micronaut.core.annotation.Introspected
 import java.util.*
 import javax.validation.constraints.NotBlank
@@ -14,11 +13,17 @@ import javax.validation.constraints.Size
 
 @Introspected
 data class KeyRequest(
-    @ValidUUID
-    @field:NotBlank val clientId: String,
-    @field:Size(max = 77) val key: String,
-    @field:NotNull val type: KeyType?,
-    @field:NotNull val accountType: AccountType?
+    @field:NotBlank(message = "clientId não estar em branco!")
+    val clientId: String,
+
+    @field:Size(max = 77, message = "O valor maximo de caracteres é de 77!")
+    val key: String,
+
+    @field:NotNull(message = "O tipo da chave não pode ser nulo!")
+    val type: KeyType?,
+
+    @field:NotNull(message = "O tipo da conta não pode ser nulo!")
+    val accountType: AccountType?
 ) {
 
     fun toModel(account: AssociatedAccount): PixKey {

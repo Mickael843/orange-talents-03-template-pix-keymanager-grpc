@@ -1,6 +1,5 @@
 package com.mikkaeru.pix.shared
 
-import com.mikkaeru.pix.shared.exception.ApiException
 import com.mikkaeru.pix.shared.handler.ExceptionHandlerResolver
 import io.grpc.stub.StreamObserver
 import io.micronaut.aop.Around
@@ -22,7 +21,7 @@ annotation class ExceptionHandler()
 private class ErrorInterceptor(@Inject private val resolver: ExceptionHandlerResolver):
     MethodInterceptor<Any, Any> {
 
-    private fun handle(e: ApiException, observer: StreamObserver<*>?) {
+    private fun handle(e: RuntimeException, observer: StreamObserver<*>?) {
         val handler = resolver.resolve(e)
         val status = handler?.handle(e)
         observer?.onError(status?.asRuntimeException())
@@ -31,7 +30,7 @@ private class ErrorInterceptor(@Inject private val resolver: ExceptionHandlerRes
     override fun intercept(context: MethodInvocationContext<Any, Any>): Any? {
         return try {
             context.proceed()
-        } catch (e: ApiException) {
+        } catch (e: RuntimeException) {
 
             val observer = context
                 .parameterValues
