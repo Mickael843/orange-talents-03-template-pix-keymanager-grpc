@@ -7,8 +7,6 @@ option java_outer_classname = "KeymanagerGrpc";
 package com.mikkaeru;
 
 service KeymanagerService {
-  rpc send (KeymanagerRequest) returns (KeymanagerReply) {}
-
   rpc registerPixKey (KeyPixRequest) returns (KeyPixResponse) {}
 }
 
@@ -19,26 +17,21 @@ message KeyPixRequest {
   AccountType accountType = 4;
 
   enum KeyType {
-    RANDOM_KEY = 0;
-    CPF = 1;
-    PHONE = 2;
-    EMAIL = 3;
+    UNKNOWN_KEY_TYPE = 0;
+    RANDOM_KEY = 1;
+    CPF = 2;
+    PHONE = 3;
+    EMAIL = 4;
   }
 
   enum AccountType {
-    SAVINGS_ACCOUNT = 0;
-    CURRENT_ACCOUNT = 1;
+    UNKNOWN_ACCOUNT_TYPE = 0;
+    SAVINGS_ACCOUNT = 1;
+    CURRENT_ACCOUNT = 2;
   }
 }
 
 message KeyPixResponse {
-  string pixId = 1;
-}
-
-message KeymanagerRequest {
-  string name = 1;
-}
-
-message KeymanagerReply {
-  string message = 1;
+  string clientId = 1;
+  string pixId = 2;
 }
