@@ -4,6 +4,10 @@ import com.mikkaeru.KeyPixRequest
 import com.mikkaeru.KeyPixRequest.AccountType.UNKNOWN_ACCOUNT_TYPE
 import com.mikkaeru.KeyPixRequest.KeyType.UNKNOWN_KEY_TYPE
 import com.mikkaeru.KeymanagerServiceGrpc
+import com.mikkaeru.pix.client.ClientAccountResponse
+import com.mikkaeru.pix.client.ItauClient
+import com.mikkaeru.pix.dto.InstitutionResponse
+import com.mikkaeru.pix.dto.OwnerResponse
 import com.mikkaeru.pix.model.AccountType
 import com.mikkaeru.pix.model.AssociatedAccount
 import com.mikkaeru.pix.model.KeyType
@@ -15,6 +19,8 @@ import io.grpc.StatusRuntimeException
 import io.micronaut.context.annotation.Factory
 import io.micronaut.grpc.annotation.GrpcChannel
 import io.micronaut.grpc.server.GrpcServerChannel
+import io.micronaut.http.HttpResponse
+import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual.equalTo
@@ -24,7 +30,9 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.util.*
+import org.mockito.Mockito
+import org.mockito.Mockito.`when`
+import java.util.UUID.randomUUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,7 +44,12 @@ internal class KeyManagerTest(
 
     private lateinit var request: KeyPixRequest.Builder
 
-    private val clientId: String = "c56dfef4-7901-44fb-84e2-a2cefb157890"
+    @Inject
+    lateinit var itauClient: ItauClient
+
+    companion object {
+        val CLIENT_ID = randomUUID().toString()
+    }
 
     @BeforeEach
     internal fun setUp() {
@@ -46,24 +59,30 @@ internal class KeyManagerTest(
             .newBuilder()
             .setValue("teste@gmail.com")
             .setKeyType(KeyPixRequest.KeyType.EMAIL)
-            .setClientId(clientId)
+            .setClientId(CLIENT_ID)
             .setAccountType(KeyPixRequest.AccountType.CURRENT_ACCOUNT)
     }
 
     @Test
     fun `deve cadastrar uma chave pix`() {
+        `when`(itauClient.findAccountById(CLIENT_ID, "CONTA_CORRENTE"))
+            .thenReturn(HttpResponse.ok(clientAccountResponse()))
+
         val response = grpcClient.registerPixKey(request.build())
 
         with(response) {
             assertNotNull(this)
             assertNotNull(pixId)
+            assertEquals(CLIENT_ID, clientId)
             assertEquals(1, repository.count())
-            assertEquals(request.clientId, clientId)
         }
     }
 
     @Test
     fun `deve cadastrar uma chave pix com valor aleatorio`() {
+        `when`(itauClient.findAccountById(CLIENT_ID, "CONTA_CORRENTE"))
+            .thenReturn(HttpResponse.ok(clientAccountResponse()))
+
         val response = grpcClient.registerPixKey(request.setKeyType(KeyPixRequest.KeyType.RANDOM_KEY).setValue("").build())
 
         val list = repository.findAll()
@@ -145,8 +164,11 @@ internal class KeyManagerTest(
 
     @Test
     fun `nao deve cadastrar a chave pix se o cliente nao existir`() {
+        `when`(itauClient.findAccountById(CLIENT_ID, "CONTA_CORRENTE"))
+            .thenReturn(HttpResponse.notFound())
+
         val exception = assertThrows<StatusRuntimeException> {
-            grpcClient.registerPixKey(request.setClientId(UUID.randomUUID().toString()).build())
+            grpcClient.registerPixKey(request.build())
         }
 
         with(exception) {
@@ -159,7 +181,7 @@ internal class KeyManagerTest(
     fun `nao deve salvar a chave pix com um valor ja existente`() {
 
         val pixKey = PixKey(
-            clientId = clientId,
+            clientId = CLIENT_ID,
             keyType = KeyType.EMAIL,
             accountType = AccountType.CURRENT_ACCOUNT,
             value = "teste@gmail.com",
@@ -182,6 +204,26 @@ internal class KeyManagerTest(
             assertThat(status.code, equalTo(ALREADY_EXISTS.code))
             assertThat(status.description, containsStringIgnoringCase("Chave pix ${pixKey.value} existente"))
         }
+    }
+
+    @MockBean(ItauClient::class)
+    fun itauClient(): ItauClient? {
+        return Mockito.mock(ItauClient::class.java)
+    }
+
+    private fun clientAccountResponse(): ClientAccountResponse {
+        return ClientAccountResponse(
+            tipo = "CONTA_CORRENTE",
+            numero = "291900",
+            agencia = "0001",
+            OwnerResponse(
+                id = CLIENT_ID,
+                nome = "Rafael M C Ponte",
+                cpf = "02467781054"
+            ), InstitutionResponse(
+                nome = "ITAÚ UNIBANCO S.A.",
+                ispb = "60701190"
+            ))
     }
 }
 
