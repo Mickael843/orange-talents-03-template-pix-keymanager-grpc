@@ -4,8 +4,7 @@ import com.mikkaeru.KeyPixRequest
 import com.mikkaeru.KeyPixRequest.AccountType.UNKNOWN_ACCOUNT_TYPE
 import com.mikkaeru.KeyPixRequest.KeyType.UNKNOWN_KEY_TYPE
 import com.mikkaeru.KeymanagerServiceGrpc
-import com.mikkaeru.pix.client.ClientAccountResponse
-import com.mikkaeru.pix.client.ItauClient
+import com.mikkaeru.pix.client.*
 import com.mikkaeru.pix.dto.InstitutionResponse
 import com.mikkaeru.pix.dto.OwnerResponse
 import com.mikkaeru.pix.model.AccountType
@@ -13,12 +12,9 @@ import com.mikkaeru.pix.model.AssociatedAccount
 import com.mikkaeru.pix.model.KeyType
 import com.mikkaeru.pix.model.PixKey
 import com.mikkaeru.pix.repository.PixKeyRepository
-import io.grpc.ManagedChannel
+import io.grpc.Status
 import io.grpc.Status.*
 import io.grpc.StatusRuntimeException
-import io.micronaut.context.annotation.Factory
-import io.micronaut.grpc.annotation.GrpcChannel
-import io.micronaut.grpc.server.GrpcServerChannel
 import io.micronaut.http.HttpResponse
 import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
@@ -31,10 +27,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
+import org.mockito.Mockito.*
+import java.time.LocalDateTime
 import java.util.UUID.randomUUID
 import javax.inject.Inject
-import javax.inject.Singleton
 
 @MicronautTest(transactional = false)
 internal class KeyManagerTest(
@@ -42,14 +38,17 @@ internal class KeyManagerTest(
     @Inject val grpcClient: KeymanagerServiceGrpc.KeymanagerServiceBlockingStub
 ) {
 
-    private lateinit var request: KeyPixRequest.Builder
+    companion object {
+        val CLIENT_ID = randomUUID().toString()
+    }
 
     @Inject
     lateinit var itauClient: ItauClient
 
-    companion object {
-        val CLIENT_ID = randomUUID().toString()
-    }
+    @Inject
+    lateinit var bcbClient: BcbClient
+
+    private lateinit var request: KeyPixRequest.Builder
 
     @BeforeEach
     internal fun setUp() {
@@ -60,15 +59,23 @@ internal class KeyManagerTest(
             .setValue("teste@gmail.com")
             .setKeyType(KeyPixRequest.KeyType.EMAIL)
             .setClientId(CLIENT_ID)
-            .setAccountType(KeyPixRequest.AccountType.CURRENT_ACCOUNT)
+            .setAccountType(KeyPixRequest.AccountType.CACC)
     }
 
     @Test
     fun `deve cadastrar uma chave pix`() {
+        val accountResponse = clientAccountResponse()
+
         `when`(itauClient.findAccountById(CLIENT_ID, "CONTA_CORRENTE"))
-            .thenReturn(HttpResponse.ok(clientAccountResponse()))
+            .thenReturn(HttpResponse.ok(accountResponse))
+
+        `when`(bcbClient.registerKey(bcbCreateKeyRequest()))
+            .thenReturn(HttpResponse.created(bcbCreateKeyResponse()))
 
         val response = grpcClient.registerPixKey(request.build())
+
+        verify(itauClient, times(1)).findAccountById(CLIENT_ID, "CONTA_CORRENTE")
+        verify(bcbClient, times(1)).registerKey(bcbCreateKeyRequest())
 
         with(response) {
             assertNotNull(this)
@@ -79,9 +86,44 @@ internal class KeyManagerTest(
     }
 
     @Test
-    fun `deve cadastrar uma chave pix com valor aleatorio`() {
+    fun `nao deve cadastrar uma chave pix que ja foi cadastrada no bcb`() {
         `when`(itauClient.findAccountById(CLIENT_ID, "CONTA_CORRENTE"))
             .thenReturn(HttpResponse.ok(clientAccountResponse()))
+
+        `when`(bcbClient.registerKey(bcbCreateKeyRequest())).thenReturn(HttpResponse.unprocessableEntity())
+
+        val exception = assertThrows<StatusRuntimeException> {
+            grpcClient.registerPixKey(request.build())
+        }
+
+        with(exception) {
+            assertThat(status.code, equalTo(Status.ALREADY_EXISTS.code))
+            assertThat(status.description, containsStringIgnoringCase("Chave pix ${request.value} já cadastrada no Banco central"))
+        }
+
+        verify(itauClient, times(1)).findAccountById(CLIENT_ID, "CONTA_CORRENTE")
+        verify(bcbClient, times(1)).registerKey(bcbCreateKeyRequest())
+    }
+
+    @Test
+    fun `deve cadastrar uma chave pix com valor aleatorio`() {
+        val accountResponse = clientAccountResponse()
+
+        `when`(itauClient.findAccountById(CLIENT_ID, "CONTA_CORRENTE"))
+            .thenReturn(HttpResponse.ok(accountResponse))
+
+        `when`(bcbClient.registerKey(BcbCreateKeyRequest(
+            keyType = KeyType.RANDOM_KEY,
+            key = "",
+            bankAccount = bankAccountRequest(accountResponse),
+            owner = ownerRequest(accountResponse)
+        ))).thenReturn(HttpResponse.created(BcbCreateKeyResponse(
+            keyType = KeyType.RANDOM_KEY,
+            key = randomUUID().toString(),
+            bankAccount = bankAccountRequest(accountResponse),
+            owner = ownerRequest(accountResponse),
+            createdAt = LocalDateTime.now().toString()
+        )))
 
         val response = grpcClient.registerPixKey(request.setKeyType(KeyPixRequest.KeyType.RANDOM_KEY).setValue("").build())
 
@@ -183,14 +225,15 @@ internal class KeyManagerTest(
         val pixKey = PixKey(
             clientId = CLIENT_ID,
             keyType = KeyType.EMAIL,
-            accountType = AccountType.CURRENT_ACCOUNT,
+            accountType = AccountType.CACC,
             value = "teste@gmail.com",
             account = AssociatedAccount(
                 agency = "0001",
                 number = "291900",
                 cpfOwner = "02467781054",
                 nameOwner = "Rafael M C Ponte",
-                institution = "ITAÚ UNIBANCO S.A."
+                institution = "ITAÚ UNIBANCO S.A.",
+                ispb = "60701190"
             )
         )
 
@@ -211,6 +254,11 @@ internal class KeyManagerTest(
         return Mockito.mock(ItauClient::class.java)
     }
 
+    @MockBean(BcbClient::class)
+    fun bcbClient(): BcbClient? {
+        return Mockito.mock(BcbClient::class.java)
+    }
+
     private fun clientAccountResponse(): ClientAccountResponse {
         return ClientAccountResponse(
             tipo = "CONTA_CORRENTE",
@@ -225,13 +273,44 @@ internal class KeyManagerTest(
                 ispb = "60701190"
             ))
     }
-}
 
-@Factory
-class GrpcClient {
+    private fun bcbCreateKeyRequest(): BcbCreateKeyRequest {
+        val accountResponse = clientAccountResponse()
 
-    @Singleton
-    fun clientStub(@GrpcChannel(GrpcServerChannel.NAME) channel: ManagedChannel): KeymanagerServiceGrpc.KeymanagerServiceBlockingStub? {
-        return KeymanagerServiceGrpc.newBlockingStub(channel)
+        return BcbCreateKeyRequest(
+            keyType = KeyType.valueOf(request.keyType.name),
+            key = request.value,
+            bankAccount = bankAccountRequest(accountResponse),
+            owner = ownerRequest(accountResponse)
+        )
+    }
+
+    private fun bcbCreateKeyResponse(): BcbCreateKeyResponse {
+        val accountResponse = clientAccountResponse()
+
+        return BcbCreateKeyResponse(
+            keyType = KeyType.valueOf(request.keyType.name),
+            key = request.value,
+            bankAccount = bankAccountRequest(accountResponse),
+            owner = ownerRequest(accountResponse),
+            createdAt = LocalDateTime.now().toString()
+        )
+    }
+
+    private fun bankAccountRequest(accountResponse: ClientAccountResponse): BankAccountRequest {
+        return BankAccountRequest(
+            participant = accountResponse.instituicao.ispb,
+            branch = accountResponse.agencia,
+            accountType = AccountType.valueOf(request.accountType.name),
+            accountNumber = accountResponse.numero
+        )
+    }
+
+    private fun ownerRequest(accountResponse: ClientAccountResponse): OwnerRequest {
+        return OwnerRequest(
+            type = OwnerType.NATURAL_PERSON,
+            name = accountResponse.titular.nome,
+            taxIdNumber = accountResponse.titular.cpf
+        )
     }
 }

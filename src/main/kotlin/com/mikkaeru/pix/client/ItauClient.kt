@@ -9,10 +9,10 @@ import io.micronaut.http.annotation.PathVariable
 import io.micronaut.http.annotation.QueryValue
 import io.micronaut.http.client.annotation.Client
 
-@Client("http://localhost:9091/api/v1/clientes")
+@Client("\${itau.contas.url}")
 interface ItauClient {
 
-    @Get("/{id}/contas")
+    @Get("/api/v1/clientes/{id}/contas")
     fun findAccountById(@PathVariable id: String, @QueryValue tipo: String): HttpResponse<ClientAccountResponse?>
 }
 
@@ -29,6 +29,7 @@ data class ClientAccountResponse(
             agency = this.agencia,
             number = this.numero,
             cpfOwner= this.titular.cpf,
+            ispb =  this.instituicao.ispb,
             nameOwner = this.titular.nome,
             institution = this.instituicao.nome
         )

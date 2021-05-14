@@ -1,17 +1,17 @@
 package com.mikkaeru.pix.shared.handler
 
-import com.mikkaeru.pix.shared.exception.ClientNotFoundException
+import com.mikkaeru.pix.shared.exception.NotFoundException
 import io.grpc.Status
 import javax.inject.Singleton
 
 @Singleton
-class ClientNotFoundExceptionHandler: ApiExceptionHandler<RuntimeException> {
+class NotFoundExceptionHandler: ApiExceptionHandler<RuntimeException> {
 
     override fun handle(e: RuntimeException): Status {
         return Status.NOT_FOUND.withDescription(e.message).withCause(e)
     }
 
     override fun supports(e: RuntimeException): Boolean {
-        return e is ClientNotFoundException
+        return e is NotFoundException
     }
 }

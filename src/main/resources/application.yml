@@ -28,10 +28,10 @@ datasources:
     dialect: H2
 jpa.default.properties.hibernate.hbm2ddl.auto: update
 
-#itau:
-#  contas:
-#    url: 'http://localhost:9091'
-#
-#bcb:
-#  pix:
-#    url: 'http://localhost:8082'
+itau:
+  contas:
+    url: 'http://localhost:9091'
+
+bcb:
+  pix:
+    url: 'http://localhost:8082'

@@ -25,7 +25,11 @@ class AssociatedAccount(
 
     @field:NotBlank
     @Column(nullable = false)
-    val institution: String
+    val institution: String,
+
+    @field:NotBlank
+    @Column(nullable = false)
+    val ispb: String
 ) {
 
 }

@@ -1,9 +1,8 @@
 package com.mikkaeru.pix
 
-import com.mikkaeru.KeyPixRequest
-import com.mikkaeru.KeyPixResponse
-import com.mikkaeru.KeymanagerServiceGrpc
-import com.mikkaeru.pix.extensions.toModel
+import com.mikkaeru.*
+import com.mikkaeru.pix.extensions.toKeyRequest
+import com.mikkaeru.pix.extensions.toRemoveKeyRequest
 import com.mikkaeru.pix.shared.ExceptionHandler
 import io.grpc.stub.StreamObserver
 import javax.inject.Inject
@@ -11,11 +10,14 @@ import javax.inject.Singleton
 
 @Singleton
 @ExceptionHandler
-class KeyManager(@Inject private val service: RegisterKey): KeymanagerServiceGrpc.KeymanagerServiceImplBase() {
+class KeyManager(
+    @Inject private val removeKey: RemoveKey,
+    @Inject private val registerKey: RegisterKey
+): KeymanagerServiceGrpc.KeymanagerServiceImplBase() {
 
     override fun registerPixKey(request: KeyPixRequest?, responseObserver: StreamObserver<KeyPixResponse>?) {
 
-        val pixKey = service.register(request!!.toModel(), responseObserver)
+        val pixKey = registerKey.register(request!!.toKeyRequest())
 
         responseObserver?.onNext(
             KeyPixResponse.newBuilder()
@@ -24,6 +26,11 @@ class KeyManager(@Inject private val service: RegisterKey): KeymanagerServiceGrp
                 .build()
         )
 
+        responseObserver?.onCompleted()
+    }
+
+    override fun removePixKey(request: RemoveKeyPixRequest?, responseObserver: StreamObserver<RemoveKeyPixResponse>?) {
+        responseObserver?.onNext(removeKey.remove(request!!.toRemoveKeyRequest()))
         responseObserver?.onCompleted()
     }
 }

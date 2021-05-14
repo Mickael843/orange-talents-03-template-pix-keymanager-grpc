@@ -8,6 +8,7 @@ package com.mikkaeru;
 
 service KeymanagerService {
   rpc registerPixKey (KeyPixRequest) returns (KeyPixResponse) {}
+  rpc removePixKey (RemoveKeyPixRequest) returns (RemoveKeyPixResponse) {}
 }
 
 message KeyPixRequest {
@@ -26,12 +27,21 @@ message KeyPixRequest {
 
   enum AccountType {
     UNKNOWN_ACCOUNT_TYPE = 0;
-    SAVINGS_ACCOUNT = 1;
-    CURRENT_ACCOUNT = 2;
+    SVGS = 1;
+    CACC = 2;
   }
 }
 
 message KeyPixResponse {
   string clientId = 1;
   string pixId = 2;
+}
+
+message RemoveKeyPixRequest {
+  string clientId = 1;
+  string pixId = 2;
+}
+
+message RemoveKeyPixResponse {
+  string message = 1;
 }
