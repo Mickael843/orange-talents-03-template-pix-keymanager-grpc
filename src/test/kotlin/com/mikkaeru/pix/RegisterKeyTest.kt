@@ -113,19 +113,19 @@ internal class KeyManagerTest(
             .thenReturn(HttpResponse.ok(accountResponse))
 
         `when`(bcbClient.registerKey(BcbCreateKeyRequest(
-            keyType = KeyType.RANDOM_KEY,
+            keyType = KeyType.RANDOM,
             key = "",
             bankAccount = bankAccountRequest(accountResponse),
             owner = ownerRequest(accountResponse)
         ))).thenReturn(HttpResponse.created(BcbCreateKeyResponse(
-            keyType = KeyType.RANDOM_KEY,
+            keyType = KeyType.RANDOM,
             key = randomUUID().toString(),
             bankAccount = bankAccountRequest(accountResponse),
             owner = ownerRequest(accountResponse),
             createdAt = LocalDateTime.now().toString()
         )))
 
-        val response = grpcClient.registerPixKey(request.setKeyType(KeyPixRequest.KeyType.RANDOM_KEY).setValue("").build())
+        val response = grpcClient.registerPixKey(request.setKeyType(KeyPixRequest.KeyType.RANDOM).setValue("").build())
 
         val list = repository.findAll()
 

@@ -7,7 +7,7 @@ import com.mikkaeru.pix.client.BcbDeleteKeyRequest
 import com.mikkaeru.pix.client.BcbDeleteKeyResponse
 import com.mikkaeru.pix.model.AccountType.CACC
 import com.mikkaeru.pix.model.AssociatedAccount
-import com.mikkaeru.pix.model.KeyType.RANDOM_KEY
+import com.mikkaeru.pix.model.KeyType.RANDOM
 import com.mikkaeru.pix.model.PixKey
 import com.mikkaeru.pix.repository.PixKeyRepository
 import io.grpc.Status
@@ -50,7 +50,7 @@ internal class RemoveKeyTest(
 
         pixKey = PixKey(
             clientId = CLIENT_ID,
-            keyType = RANDOM_KEY,
+            keyType = RANDOM,
             accountType = CACC,
             value = randomUUID().toString(),
             account = AssociatedAccount(

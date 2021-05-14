@@ -1,6 +1,5 @@
 package com.mikkaeru.pix.model
 
-import com.mikkaeru.pix.model.KeyType.RANDOM_KEY
 import com.mikkaeru.pix.shared.exception.InvalidArgumentException
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.StringContains.containsStringIgnoringCase
@@ -18,7 +17,7 @@ internal class KeyTypeTest {
         @Test
         fun `deve dar uma exception se a chave nao for vazia ou nula`() {
             val exception = assertThrows<InvalidArgumentException> {
-                RANDOM_KEY.validate("Não sou nulo")
+                KeyType.RANDOM.validate("Não sou nulo")
             }
 
             with(exception) {
@@ -30,7 +29,7 @@ internal class KeyTypeTest {
         @Test
         fun `nao deve dar uma exception se a chave for vazia ou nula`() {
             assertDoesNotThrow {
-                RANDOM_KEY.validate("")
+                KeyType.RANDOM.validate("")
             }
         }
     }

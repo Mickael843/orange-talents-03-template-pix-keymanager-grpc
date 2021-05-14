@@ -46,7 +46,7 @@ class RegisterKey(
 
             val body = it.body()!!
 
-            pixKey = if (body.keyType == KeyType.RANDOM_KEY) {
+            pixKey = if (body.keyType == KeyType.RANDOM) {
                 PixKey(
                     clientId = pixKeyTmp.clientId,
                     keyType = pixKeyTmp.keyType,

@@ -19,7 +19,7 @@ message KeyPixRequest {
 
   enum KeyType {
     UNKNOWN_KEY_TYPE = 0;
-    RANDOM_KEY = 1;
+    RANDOM = 1;
     CPF = 2;
     PHONE = 3;
     EMAIL = 4;

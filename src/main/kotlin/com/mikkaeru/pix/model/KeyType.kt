@@ -50,7 +50,7 @@ enum class KeyType {
         }
     },
 
-    RANDOM_KEY {
+    RANDOM {
         override fun validate(key: String?) {
             if (!key.isNullOrBlank()) {
                 throw InvalidArgumentException("Não é necessário informar a chave para geração randômica")
