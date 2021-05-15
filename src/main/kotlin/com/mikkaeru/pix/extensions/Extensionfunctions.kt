@@ -12,10 +12,10 @@ import com.mikkaeru.pix.model.KeyType
 fun KeyPixRequest.toKeyRequest(): KeyRequest {
     return KeyRequest(
         clientId = clientId,
-        key = value,
-        type = when (keyType) {
+        key = key,
+        type = when (type) {
             UNKNOWN_KEY_TYPE -> null
-            else -> KeyType.valueOf(keyType.name)
+            else -> KeyType.valueOf(type.name)
         },
         accountType = when(accountType) {
             UNKNOWN_ACCOUNT_TYPE -> null

@@ -56,8 +56,8 @@ internal class KeyManagerTest(
 
         request = KeyPixRequest
             .newBuilder()
-            .setValue("teste@gmail.com")
-            .setKeyType(KeyPixRequest.KeyType.EMAIL)
+            .setKey("teste@gmail.com")
+            .setType(KeyPixRequest.KeyType.EMAIL)
             .setClientId(CLIENT_ID)
             .setAccountType(KeyPixRequest.AccountType.CACC)
     }
@@ -98,7 +98,7 @@ internal class KeyManagerTest(
 
         with(exception) {
             assertThat(status.code, equalTo(Status.ALREADY_EXISTS.code))
-            assertThat(status.description, containsStringIgnoringCase("Chave pix ${request.value} já cadastrada no Banco central"))
+            assertThat(status.description, containsStringIgnoringCase("Chave pix ${request.key} já cadastrada no Banco central"))
         }
 
         verify(itauClient, times(1)).findAccountById(CLIENT_ID, "CONTA_CORRENTE")
@@ -125,7 +125,7 @@ internal class KeyManagerTest(
             createdAt = LocalDateTime.now().toString()
         )))
 
-        val response = grpcClient.registerPixKey(request.setKeyType(KeyPixRequest.KeyType.RANDOM).setValue("").build())
+        val response = grpcClient.registerPixKey(request.setType(KeyPixRequest.KeyType.RANDOM).setKey("").build())
 
         val list = repository.findAll()
 
@@ -133,7 +133,7 @@ internal class KeyManagerTest(
             assertNotNull(this)
             assertNotNull(pixId)
             assertEquals(1, list.size)
-            assertNotNull(list[list.size -1].value)
+            assertNotNull(list[list.size -1].key)
             assertEquals(request.clientId, clientId)
         }
     }
@@ -141,7 +141,7 @@ internal class KeyManagerTest(
     @Test
     fun `nao deve cadastrar a chave pix quando o tipo da chave for desconhecido`() {
         val exception = assertThrows<StatusRuntimeException> {
-            grpcClient.registerPixKey(request.setKeyType(UNKNOWN_KEY_TYPE).build())
+            grpcClient.registerPixKey(request.setType(UNKNOWN_KEY_TYPE).build())
         }
 
         with(exception) {
@@ -168,8 +168,8 @@ internal class KeyManagerTest(
 
         val exception = assertThrows<StatusRuntimeException> {
             grpcClient.registerPixKey(
-                request.setValue(value)
-                    .setKeyType(KeyPixRequest.KeyType.EMAIL)
+                request.setKey(value)
+                    .setType(KeyPixRequest.KeyType.EMAIL)
                     .build()
             )
         }
@@ -183,7 +183,7 @@ internal class KeyManagerTest(
     @Test
     fun `nao deve cadastrar a chave pix ao passar cpf invalido`() {
         val exception = assertThrows<StatusRuntimeException> {
-            grpcClient.registerPixKey(request.setValue("123456").setKeyType(KeyPixRequest.KeyType.CPF).build())
+            grpcClient.registerPixKey(request.setKey("123456").setType(KeyPixRequest.KeyType.CPF).build())
         }
 
         with(exception) {
@@ -195,7 +195,7 @@ internal class KeyManagerTest(
     @Test
     fun `nao deve cadastrar a chave pix ao passar numero de telefone invalido`() {
         val exception = assertThrows<StatusRuntimeException> {
-            grpcClient.registerPixKey(request.setValue("1234").setKeyType(KeyPixRequest.KeyType.PHONE).build())
+            grpcClient.registerPixKey(request.setKey("1234").setType(KeyPixRequest.KeyType.PHONE).build())
         }
 
         with(exception) {
@@ -224,9 +224,9 @@ internal class KeyManagerTest(
 
         val pixKey = PixKey(
             clientId = CLIENT_ID,
-            keyType = KeyType.EMAIL,
+            type = KeyType.EMAIL,
             accountType = AccountType.CACC,
-            value = "teste@gmail.com",
+            key = "teste@gmail.com",
             account = AssociatedAccount(
                 agency = "0001",
                 number = "291900",
@@ -240,12 +240,12 @@ internal class KeyManagerTest(
         repository.save(pixKey)
 
         val exception = assertThrows<StatusRuntimeException> {
-            grpcClient.registerPixKey(request.setValue(pixKey.value).setKeyType(KeyPixRequest.KeyType.EMAIL).build())
+            grpcClient.registerPixKey(request.setKey(pixKey.key).setType(KeyPixRequest.KeyType.EMAIL).build())
         }
 
         with(exception) {
             assertThat(status.code, equalTo(ALREADY_EXISTS.code))
-            assertThat(status.description, containsStringIgnoringCase("Chave pix ${pixKey.value} existente"))
+            assertThat(status.description, containsStringIgnoringCase("Chave pix ${pixKey.key} existente"))
         }
     }
 
@@ -278,8 +278,8 @@ internal class KeyManagerTest(
         val accountResponse = clientAccountResponse()
 
         return BcbCreateKeyRequest(
-            keyType = KeyType.valueOf(request.keyType.name),
-            key = request.value,
+            keyType = KeyType.valueOf(request.type.name),
+            key = request.key,
             bankAccount = bankAccountRequest(accountResponse),
             owner = ownerRequest(accountResponse)
         )
@@ -289,8 +289,8 @@ internal class KeyManagerTest(
         val accountResponse = clientAccountResponse()
 
         return BcbCreateKeyResponse(
-            keyType = KeyType.valueOf(request.keyType.name),
-            key = request.value,
+            keyType = KeyType.valueOf(request.type.name),
+            key = request.key,
             bankAccount = bankAccountRequest(accountResponse),
             owner = ownerRequest(accountResponse),
             createdAt = LocalDateTime.now().toString()

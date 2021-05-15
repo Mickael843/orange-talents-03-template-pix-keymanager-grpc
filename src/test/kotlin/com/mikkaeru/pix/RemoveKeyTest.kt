@@ -20,6 +20,7 @@ import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual.equalTo
 import org.hamcrest.core.StringContains.containsStringIgnoringCase
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -50,9 +51,9 @@ internal class RemoveKeyTest(
 
         pixKey = PixKey(
             clientId = CLIENT_ID,
-            keyType = RANDOM,
+            type = RANDOM,
             accountType = CACC,
-            value = randomUUID().toString(),
+            key = randomUUID().toString(),
             account = AssociatedAccount(
                 agency = "0001",
                 number = "291900",
@@ -66,13 +67,13 @@ internal class RemoveKeyTest(
     @Test
     fun `deve remover uma chave pix`() {
         `when`(bcbClient.deleteKey(
-            key = pixKey.value,
+            key = pixKey.key,
             BcbDeleteKeyRequest(
-                key = pixKey.value,
+                key = pixKey.key,
                 participant = pixKey.account.ispb
             ))).thenReturn(HttpResponse.ok(
             BcbDeleteKeyResponse(
-                key = pixKey.value,
+                key = pixKey.key,
                 participant = pixKey.account.ispb,
                 deletedAt = LocalDateTime.now().toString()
             )))
@@ -87,16 +88,17 @@ internal class RemoveKeyTest(
         )
 
         with(response) {
-            assertThat(message, equalTo("Chave pix removida com sucesso."))
+            assertNotNull(pixId)
+            assertThat(clientId, equalTo(CLIENT_ID))
         }
     }
 
     @Test
     fun `deve retornar status 404 na consulta ao banco central`() {
         `when`(bcbClient.deleteKey(
-            key = pixKey.value,
+            key = pixKey.key,
             BcbDeleteKeyRequest(
-                key = pixKey.value,
+                key = pixKey.key,
                 participant = pixKey.account.ispb
             ))).thenReturn(HttpResponse.notFound())
 
@@ -120,9 +122,9 @@ internal class RemoveKeyTest(
     @Test
     fun `deve retornar 403 na consulta ao banco central`() {
         `when`(bcbClient.deleteKey(
-            key = pixKey.value,
+            key = pixKey.key,
             BcbDeleteKeyRequest(
-                key = pixKey.value,
+                key = pixKey.key,
                 participant = pixKey.account.ispb
             ))).thenReturn(HttpResponse.status(FORBIDDEN))
 

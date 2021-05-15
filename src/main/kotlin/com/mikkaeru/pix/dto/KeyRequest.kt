@@ -27,8 +27,8 @@ data class KeyRequest(
     fun toModel(account: AssociatedAccount): PixKey {
         return PixKey(
             clientId = this.clientId,
-            keyType = this.type!!,
-            value = this.key,
+            type = this.type!!,
+            key = this.key,
             accountType = this.accountType!!,
             account = account
         )

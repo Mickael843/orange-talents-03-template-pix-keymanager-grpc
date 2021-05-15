@@ -13,8 +13,8 @@ service KeymanagerService {
 
 message KeyPixRequest {
   string clientId = 1;
-  string value = 2;
-  KeyType keyType = 3;
+  string key = 2;
+  KeyType type = 3;
   AccountType accountType = 4;
 
   enum KeyType {
@@ -43,5 +43,6 @@ message RemoveKeyPixRequest {
 }
 
 message RemoveKeyPixResponse {
-  string message = 1;
+  string clientId = 1;
+  string pixId = 2;
 }

@@ -28,7 +28,7 @@ class RegisterKey(
             type!!.validate(key)
         }
 
-        if (repository.existsByValue(request.key)) {
+        if (repository.existsByKey(request.key)) {
             throw ExistingPixKeyException("Chave pix ${request.key} existente")
         }
 
@@ -49,9 +49,9 @@ class RegisterKey(
             pixKey = if (body.keyType == KeyType.RANDOM) {
                 PixKey(
                     clientId = pixKeyTmp.clientId,
-                    keyType = pixKeyTmp.keyType,
+                    type = pixKeyTmp.type,
                     accountType = pixKeyTmp.accountType,
-                    value = body.key,
+                    key = body.key,
                     account = pixKeyTmp.account
                 )
             } else { pixKeyTmp }
@@ -62,8 +62,8 @@ class RegisterKey(
 
     private fun PixKey.toBcbKeyRequest(): BcbCreateKeyRequest {
         return BcbCreateKeyRequest(
-            keyType = keyType,
-            key = value,
+            keyType = type,
+            key = key,
             bankAccount = BankAccountRequest(
                 participant = account.ispb,
                 branch = account.agency,

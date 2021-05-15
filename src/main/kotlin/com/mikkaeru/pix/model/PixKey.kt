@@ -19,7 +19,7 @@ class PixKey(
     @field:NotNull
     @Enumerated(STRING)
     @Column(nullable = false)
-    val keyType: KeyType,
+    val type: KeyType,
 
     @field:NotBlank
     @Enumerated(STRING)
@@ -28,7 +28,7 @@ class PixKey(
 
     @field:NotBlank
     @Column(nullable = false, unique = true)
-    val value: String,
+    val key: String,
 
     @Embedded
     @field:NotNull

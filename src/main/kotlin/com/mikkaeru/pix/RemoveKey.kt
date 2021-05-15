@@ -26,9 +26,9 @@ class RemoveKey(
             .orElseThrow { throw NotFoundException("Chave pix correspondente ao id ${request.pixId} não foi encontrada!") }
 
         bcbClient.deleteKey(
-            key = pixKey.value,
+            key = pixKey.key,
             request = BcbDeleteKeyRequest(
-                key = pixKey.value,
+                key = pixKey.key,
                 participant = pixKey.account.ispb
             )).let {
                 if (it.status.code == 403) {
@@ -40,6 +40,10 @@ class RemoveKey(
 
         repository.delete(pixKey)
 
-        return RemoveKeyPixResponse.newBuilder().setMessage("Chave pix removida com sucesso.").build()
+        return RemoveKeyPixResponse
+            .newBuilder()
+            .setClientId(pixKey.clientId)
+            .setPixId(pixKey.id)
+            .build()
     }
 }
