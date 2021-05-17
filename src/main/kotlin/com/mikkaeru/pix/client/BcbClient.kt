@@ -1,6 +1,8 @@
 package com.mikkaeru.pix.client
 
+import com.mikkaeru.pix.dto.PixKeyInfo
 import com.mikkaeru.pix.model.AccountType
+import com.mikkaeru.pix.model.AssociatedAccount
 import com.mikkaeru.pix.model.KeyType
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.MediaType.APPLICATION_XML
@@ -59,7 +61,25 @@ data class PixKeyDetailsResponse(
     val bankAccount: BankAccountRequest,
     val owner: OwnerRequest,
     val createdAt: String
-)
+) {
+
+    fun toPixKeyInfo(): PixKeyInfo {
+        // TODO Adicionar consulta do nome da instituição pelo ispb.
+        return PixKeyInfo(
+            type = keyType,
+            accountType = bankAccount.accountType,
+            key = key,
+            account = AssociatedAccount(
+                ispb = bankAccount.participant,
+                agency = bankAccount.branch,
+                number = bankAccount.accountNumber,
+                nameOwner = owner.name,
+                cpfOwner = owner.taxIdNumber,
+                institution = "ITAÚ UNIBANCO S.A."
+            )
+        )
+    }
+}
 
 data class OwnerRequest(
     val type: OwnerType,

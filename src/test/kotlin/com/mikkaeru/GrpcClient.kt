@@ -10,7 +10,12 @@ import javax.inject.Singleton
 class GrpcClient {
 
     @Singleton
-    fun clientStub(@GrpcChannel(GrpcServerChannel.NAME) channel: ManagedChannel): KeymanagerServiceGrpc.KeymanagerServiceBlockingStub? {
+    fun clientStubKeyManager(@GrpcChannel(GrpcServerChannel.NAME) channel: ManagedChannel): KeymanagerServiceGrpc.KeymanagerServiceBlockingStub? {
         return KeymanagerServiceGrpc.newBlockingStub(channel)
+    }
+
+    @Singleton
+    fun clientStubSearchManager(@GrpcChannel(GrpcServerChannel.NAME) channel: ManagedChannel): SearchManagerServiceGrpc.SearchManagerServiceBlockingStub? {
+        return SearchManagerServiceGrpc.newBlockingStub(channel)
     }
 }

@@ -1,70 +1,31 @@
 package com.mikkaeru.pix
 
-import com.mikkaeru.*
-import com.mikkaeru.SearchPixKeyResponse.Account
-import com.mikkaeru.SearchPixKeyResponse.Owner
-import com.mikkaeru.pix.model.PixKey
+import com.mikkaeru.SearchManagerServiceGrpc
+import com.mikkaeru.SearchRequest
+import com.mikkaeru.SearchResponse
+import com.mikkaeru.pix.client.BcbClient
+import com.mikkaeru.pix.extensions.toModel
 import com.mikkaeru.pix.repository.PixKeyRepository
 import com.mikkaeru.pix.shared.ExceptionHandler
-import com.mikkaeru.pix.shared.exception.NotFoundException
 import io.grpc.stub.StreamObserver
+import io.micronaut.validation.validator.Validator
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 @ExceptionHandler
 class SearchManager(
+    @Inject private val bcbClient: BcbClient,
+    @Inject private val validator: Validator,
     @Inject private val repository: PixKeyRepository
-): KeymanagerServiceGrpc.KeymanagerServiceImplBase() {
+): SearchManagerServiceGrpc.SearchManagerServiceImplBase() {
 
-    override fun searchPixKeyByClientIdAndPixId(request: SearchPixKeyRequest?, responseObserver: StreamObserver<SearchPixKeyResponse>?) {
-        if (request?.pixId.isNullOrEmpty()) {
-            throw IllegalStateException("O campo pixId não pode ser nulo")
-        } else if (request?.clientId.isNullOrEmpty()) {
-            throw IllegalStateException("O campo clientId não pode ser nulo")
-        }
+    override fun searchPixKey(request: SearchRequest?, responseObserver: StreamObserver<SearchResponse>?) {
 
-        val pixKey = repository.findByIdAndClientId(request!!.pixId, request.clientId).orElseThrow {
-            throw NotFoundException("Chave pix não foi encontrada")
-        }
+        val filter = request?.toModel(validator)
+        val response = filter!!.filter(repository, bcbClient)
 
-        responseObserver?.onNext(searchPixKeyResponse(pixKey))
+        responseObserver?.onNext(SearchResponseConverter().convert(response))
         responseObserver?.onCompleted()
-    }
-
-    override fun searchPixKeyByKey(request: SearchByKeyRequest?, responseObserver: StreamObserver<SearchPixKeyResponse>?) {
-        if (request?.key.isNullOrEmpty()) {
-            throw IllegalStateException("A chave não pode estar em branco")
-        }
-
-        val pixKey = repository.findByKey(request!!.key).orElseThrow {
-            throw NotFoundException("Chave pix '${request.key}' não foi encontrada")
-        }
-
-        responseObserver?.onNext(searchPixKeyResponse(pixKey))
-        responseObserver?.onCompleted()
-    }
-
-    private fun searchPixKeyResponse(pixKey: PixKey): SearchPixKeyResponse {
-        return SearchPixKeyResponse.newBuilder()
-            .setPixId(pixKey.id)
-            .setClientId(pixKey.clientId)
-            .setType(KeyType.valueOf(pixKey.type.name))
-            .setKey(pixKey.key)
-            .setOwner(
-                Owner.newBuilder()
-                    .setCpf(pixKey.account.cpfOwner)
-                    .setName(pixKey.account.nameOwner)
-                    .build()
-            )
-            .setAccount(
-                Account.newBuilder()
-                    .setInstitution(pixKey.account.institution)
-                    .setAgency(pixKey.account.agency)
-                    .setNumber(pixKey.account.number)
-                    .setType(AccountType.valueOf(pixKey.accountType.name))
-            )
-            .setCreateAt(pixKey.createdAt.toString())
-            .build()
     }
 }

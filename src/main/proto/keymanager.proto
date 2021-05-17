@@ -6,12 +6,15 @@ option java_outer_classname = "KeymanagerGrpc";
 
 package com.mikkaeru;
 
+import "google/protobuf/timestamp.proto";
+
 service KeymanagerService {
   rpc registerPixKey (KeyPixRequest) returns (KeyPixResponse) {}
   rpc removePixKey (RemoveKeyPixRequest) returns (RemoveKeyPixResponse) {}
+}
 
-  rpc SearchPixKeyByClientIdAndPixId (SearchPixKeyRequest) returns (SearchPixKeyResponse) {}
-  rpc SearchPixKeyByKey (SearchByKeyRequest) returns (SearchPixKeyResponse) {}
+service SearchManagerService {
+  rpc searchPixKey (SearchRequest) returns (SearchResponse) {}
 }
 
 enum KeyType {
@@ -50,33 +53,40 @@ message RemoveKeyPixResponse {
   string pixId = 2;
 }
 
-message SearchPixKeyRequest {
-  string clientId = 1;
-  string pixId = 2;
-}
-
-message SearchByKeyRequest {
-  string key = 1;
-}
-
-message SearchPixKeyResponse {
-  string clientId = 1;
-  string pixId = 2;
-  KeyType type = 3;
-  string key = 4;
-  Owner owner = 5;
-  Account account = 6;
-  string createAt = 7;
-
-  message Owner {
-    string name = 1;
-    string cpf = 2;
+message SearchRequest {
+  message FilterById {
+    string clientId = 1;
+    string pixId = 2;
   }
 
-  message Account {
-    string institution = 1;
-    string agency = 2;
-    string number = 3;
-    AccountType type = 4;
+  oneof filter {
+    FilterById pixId = 1;
+    string key = 2;
+  }
+}
+
+message SearchResponse {
+  string clientId = 1;
+  string pixId = 2;
+  PixKey pixKey = 3;
+
+  message PixKey {
+    KeyType type = 1;
+    string key = 2;
+    Owner owner = 3;
+    Account account = 4;
+    google.protobuf.Timestamp createAt = 5;
+
+    message Owner {
+      string name = 1;
+      string cpf = 2;
+    }
+
+    message Account {
+      string institution = 1;
+      string agency = 2;
+      string number = 3;
+      AccountType type = 4;
+    }
   }
 }
