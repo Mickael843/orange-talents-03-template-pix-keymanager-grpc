@@ -9,6 +9,23 @@ package com.mikkaeru;
 service KeymanagerService {
   rpc registerPixKey (KeyPixRequest) returns (KeyPixResponse) {}
   rpc removePixKey (RemoveKeyPixRequest) returns (RemoveKeyPixResponse) {}
+
+  rpc SearchPixKeyByClientIdAndPixId (SearchPixKeyRequest) returns (SearchPixKeyResponse) {}
+  rpc SearchPixKeyByKey (SearchByKeyRequest) returns (SearchPixKeyResponse) {}
+}
+
+enum KeyType {
+  UNKNOWN_KEY_TYPE = 0;
+  RANDOM = 1;
+  CPF = 2;
+  PHONE = 3;
+  EMAIL = 4;
+}
+
+enum AccountType {
+  UNKNOWN_ACCOUNT_TYPE = 0;
+  SVGS = 1;
+  CACC = 2;
 }
 
 message KeyPixRequest {
@@ -16,20 +33,6 @@ message KeyPixRequest {
   string key = 2;
   KeyType type = 3;
   AccountType accountType = 4;
-
-  enum KeyType {
-    UNKNOWN_KEY_TYPE = 0;
-    RANDOM = 1;
-    CPF = 2;
-    PHONE = 3;
-    EMAIL = 4;
-  }
-
-  enum AccountType {
-    UNKNOWN_ACCOUNT_TYPE = 0;
-    SVGS = 1;
-    CACC = 2;
-  }
 }
 
 message KeyPixResponse {
@@ -45,4 +48,35 @@ message RemoveKeyPixRequest {
 message RemoveKeyPixResponse {
   string clientId = 1;
   string pixId = 2;
+}
+
+message SearchPixKeyRequest {
+  string clientId = 1;
+  string pixId = 2;
+}
+
+message SearchByKeyRequest {
+  string key = 1;
+}
+
+message SearchPixKeyResponse {
+  string clientId = 1;
+  string pixId = 2;
+  KeyType type = 3;
+  string key = 4;
+  Owner owner = 5;
+  Account account = 6;
+  string createAt = 7;
+
+  message Owner {
+    string name = 1;
+    string cpf = 2;
+  }
+
+  message Account {
+    string institution = 1;
+    string agency = 2;
+    string number = 3;
+    AccountType type = 4;
+  }
 }

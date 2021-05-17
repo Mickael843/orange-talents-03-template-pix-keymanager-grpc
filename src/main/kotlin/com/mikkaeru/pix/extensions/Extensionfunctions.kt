@@ -1,8 +1,8 @@
 package com.mikkaeru.pix.extensions
 
+import com.mikkaeru.AccountType.UNKNOWN_ACCOUNT_TYPE
 import com.mikkaeru.KeyPixRequest
-import com.mikkaeru.KeyPixRequest.AccountType.UNKNOWN_ACCOUNT_TYPE
-import com.mikkaeru.KeyPixRequest.KeyType.UNKNOWN_KEY_TYPE
+import com.mikkaeru.KeyType.UNKNOWN_KEY_TYPE
 import com.mikkaeru.RemoveKeyPixRequest
 import com.mikkaeru.pix.dto.KeyRequest
 import com.mikkaeru.pix.dto.RemoveKeyRequest

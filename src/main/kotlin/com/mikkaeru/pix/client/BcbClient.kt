@@ -4,10 +4,7 @@ import com.mikkaeru.pix.model.AccountType
 import com.mikkaeru.pix.model.KeyType
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.MediaType.APPLICATION_XML
-import io.micronaut.http.annotation.Body
-import io.micronaut.http.annotation.Delete
-import io.micronaut.http.annotation.PathVariable
-import io.micronaut.http.annotation.Post
+import io.micronaut.http.annotation.*
 import io.micronaut.http.client.annotation.Client
 
 @Client("\${bcb.pix.url}")
@@ -18,6 +15,9 @@ interface BcbClient {
 
     @Delete("/api/v1/pix/keys/{key}", consumes = [APPLICATION_XML], produces = [APPLICATION_XML])
     fun deleteKey(@PathVariable key: String, @Body request: BcbDeleteKeyRequest): HttpResponse<BcbDeleteKeyResponse>
+
+    @Get("/api/v1/pix/keys/{key}", consumes = [APPLICATION_XML])
+    fun searchPixKey(@PathVariable key: String): HttpResponse<PixKeyDetailsResponse>
 }
 
 data class BcbCreateKeyRequest(
@@ -51,6 +51,14 @@ data class BankAccountRequest(
     val branch: String,
     val accountNumber: String,
     val accountType: AccountType
+)
+
+data class PixKeyDetailsResponse(
+    val keyType: KeyType,
+    val key: String,
+    val bankAccount: BankAccountRequest,
+    val owner: OwnerRequest,
+    val createdAt: String
 )
 
 data class OwnerRequest(

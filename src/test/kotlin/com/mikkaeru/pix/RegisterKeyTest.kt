@@ -1,13 +1,13 @@
 package com.mikkaeru.pix
 
+import com.mikkaeru.AccountType.CACC
+import com.mikkaeru.AccountType.UNKNOWN_ACCOUNT_TYPE
 import com.mikkaeru.KeyPixRequest
-import com.mikkaeru.KeyPixRequest.AccountType.UNKNOWN_ACCOUNT_TYPE
-import com.mikkaeru.KeyPixRequest.KeyType.UNKNOWN_KEY_TYPE
+import com.mikkaeru.KeyType.*
 import com.mikkaeru.KeymanagerServiceGrpc
 import com.mikkaeru.pix.client.*
 import com.mikkaeru.pix.dto.InstitutionResponse
 import com.mikkaeru.pix.dto.OwnerResponse
-import com.mikkaeru.pix.model.AccountType
 import com.mikkaeru.pix.model.AssociatedAccount
 import com.mikkaeru.pix.model.KeyType
 import com.mikkaeru.pix.model.PixKey
@@ -57,9 +57,9 @@ internal class KeyManagerTest(
         request = KeyPixRequest
             .newBuilder()
             .setKey("teste@gmail.com")
-            .setType(KeyPixRequest.KeyType.EMAIL)
+            .setType(EMAIL)
             .setClientId(CLIENT_ID)
-            .setAccountType(KeyPixRequest.AccountType.CACC)
+            .setAccountType(CACC)
     }
 
     @Test
@@ -125,7 +125,7 @@ internal class KeyManagerTest(
             createdAt = LocalDateTime.now().toString()
         )))
 
-        val response = grpcClient.registerPixKey(request.setType(KeyPixRequest.KeyType.RANDOM).setKey("").build())
+        val response = grpcClient.registerPixKey(request.setType(RANDOM).setKey("").build())
 
         val list = repository.findAll()
 
@@ -169,7 +169,7 @@ internal class KeyManagerTest(
         val exception = assertThrows<StatusRuntimeException> {
             grpcClient.registerPixKey(
                 request.setKey(value)
-                    .setType(KeyPixRequest.KeyType.EMAIL)
+                    .setType(EMAIL)
                     .build()
             )
         }
@@ -183,7 +183,7 @@ internal class KeyManagerTest(
     @Test
     fun `nao deve cadastrar a chave pix ao passar cpf invalido`() {
         val exception = assertThrows<StatusRuntimeException> {
-            grpcClient.registerPixKey(request.setKey("123456").setType(KeyPixRequest.KeyType.CPF).build())
+            grpcClient.registerPixKey(request.setKey("123456").setType(CPF).build())
         }
 
         with(exception) {
@@ -195,7 +195,7 @@ internal class KeyManagerTest(
     @Test
     fun `nao deve cadastrar a chave pix ao passar numero de telefone invalido`() {
         val exception = assertThrows<StatusRuntimeException> {
-            grpcClient.registerPixKey(request.setKey("1234").setType(KeyPixRequest.KeyType.PHONE).build())
+            grpcClient.registerPixKey(request.setKey("1234").setType(PHONE).build())
         }
 
         with(exception) {
@@ -225,7 +225,7 @@ internal class KeyManagerTest(
         val pixKey = PixKey(
             clientId = CLIENT_ID,
             type = KeyType.EMAIL,
-            accountType = AccountType.CACC,
+            accountType = com.mikkaeru.pix.model.AccountType.CACC,
             key = "teste@gmail.com",
             account = AssociatedAccount(
                 agency = "0001",
@@ -240,7 +240,7 @@ internal class KeyManagerTest(
         repository.save(pixKey)
 
         val exception = assertThrows<StatusRuntimeException> {
-            grpcClient.registerPixKey(request.setKey(pixKey.key).setType(KeyPixRequest.KeyType.EMAIL).build())
+            grpcClient.registerPixKey(request.setKey(pixKey.key).setType(EMAIL).build())
         }
 
         with(exception) {
@@ -301,7 +301,7 @@ internal class KeyManagerTest(
         return BankAccountRequest(
             participant = accountResponse.instituicao.ispb,
             branch = accountResponse.agencia,
-            accountType = AccountType.valueOf(request.accountType.name),
+            accountType = com.mikkaeru.pix.model.AccountType.valueOf(request.accountType.name),
             accountNumber = accountResponse.numero
         )
     }
