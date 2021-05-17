@@ -15,6 +15,7 @@ service KeymanagerService {
 
 service SearchManagerService {
   rpc searchPixKey (SearchRequest) returns (SearchResponse) {}
+  rpc searchAllByOwner (SearchAllRequest) returns (SearchAllResponse) {}
 }
 
 enum KeyType {
@@ -88,5 +89,22 @@ message SearchResponse {
       string number = 3;
       AccountType type = 4;
     }
+  }
+}
+
+message SearchAllRequest {
+  string clientId = 1;
+}
+
+message SearchAllResponse {
+  string clientId = 1;
+  repeated PixKeyDetails pixKeys = 2;
+
+  message PixKeyDetails {
+    string pixId = 2;
+    KeyType type = 3;
+    string key = 4;
+    AccountType accountType = 5;
+    google.protobuf.Timestamp createAt = 6;
   }
 }

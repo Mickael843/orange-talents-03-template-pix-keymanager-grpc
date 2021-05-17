@@ -1,5 +1,6 @@
 package com.mikkaeru.pix
 
+import com.mikkaeru.SearchAllRequest
 import com.mikkaeru.SearchManagerServiceGrpc
 import com.mikkaeru.SearchRequest
 import com.mikkaeru.pix.client.*
@@ -187,6 +188,48 @@ internal class SearchManagerTest(
         with(exception) {
             assertThat(status.code, equalTo(Status.NOT_FOUND.code))
             assertThat(status.description, containsStringIgnoringCase("Chave pix não encontrada"))
+        }
+    }
+
+    @Test
+    fun `deve retornar uma lista de chaves`() {
+        repository.save(pixKeyTmp)
+
+        val response = grpcClient.searchAllByOwner(
+            SearchAllRequest.newBuilder().setClientId(pixKeyTmp.clientId).build()
+        )
+
+        with(response) {
+            assertNotNull(response)
+            assertThat(pixKeysCount, equalTo(1))
+            assertThat(clientId, equalTo(pixKeyTmp.clientId))
+        }
+    }
+
+    @Test
+    fun `deve retornar uma lista vazia`() {
+        val response = grpcClient.searchAllByOwner(
+            SearchAllRequest.newBuilder().setClientId(pixKeyTmp.clientId).build()
+        )
+
+        with(response) {
+            assertNotNull(response)
+            assertThat(pixKeysCount, equalTo(0))
+            assertThat(clientId, equalTo(pixKeyTmp.clientId))
+        }
+    }
+
+    @Test
+    fun `deve retornar um error de campo invalido`() {
+        val exception = assertThrows<StatusRuntimeException> {
+            grpcClient.searchAllByOwner(
+                SearchAllRequest.newBuilder().setClientId("").build()
+            )
+        }
+
+        with(exception) {
+            assertThat(status.code, equalTo(Status.INVALID_ARGUMENT.code))
+            assertThat(status.description, equalTo("O campo clientId não pode ser nulo"))
         }
     }
 
