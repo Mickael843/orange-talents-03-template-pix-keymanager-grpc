@@ -133,7 +133,7 @@ internal class KeyManagerTest(
             assertNotNull(this)
             assertNotNull(pixId)
             assertEquals(1, list.size)
-            assertNotNull(list[list.size -1].key)
+            assertNotNull(list[list.size -1].value)
             assertEquals(request.clientId, clientId)
         }
     }
@@ -226,7 +226,7 @@ internal class KeyManagerTest(
             clientId = CLIENT_ID,
             type = KeyType.EMAIL,
             accountType = com.mikkaeru.pix.model.AccountType.CACC,
-            key = "teste@gmail.com",
+            value = "teste@gmail.com",
             account = AssociatedAccount(
                 agency = "0001",
                 number = "291900",
@@ -240,12 +240,12 @@ internal class KeyManagerTest(
         repository.save(pixKey)
 
         val exception = assertThrows<StatusRuntimeException> {
-            grpcClient.registerPixKey(request.setKey(pixKey.key).setType(EMAIL).build())
+            grpcClient.registerPixKey(request.setKey(pixKey.value).setType(EMAIL).build())
         }
 
         with(exception) {
             assertThat(status.code, equalTo(ALREADY_EXISTS.code))
-            assertThat(status.description, containsStringIgnoringCase("Chave pix ${pixKey.key} existente"))
+            assertThat(status.description, containsStringIgnoringCase("Chave pix ${pixKey.value} existente"))
         }
     }
 

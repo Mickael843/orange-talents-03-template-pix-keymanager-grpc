@@ -10,18 +10,18 @@ grpc:
 
 datasources:
   default:
-    url: jdbc:mysql://localhost:3306/keymanager_db
+    url: jdbc:mysql://${HOST:localhost}:${PORT:3306}/${DATABASE:keymanager_db}
     driverClassName: com.mysql.cj.jdbc.Driver
-    username: root
-    password: admin
+    username: ${USERNAME_DB:root}
+    password: ${PASSWORD_DB:admin}
     schema-generate: CREATE_DROP
     dialect: MYSQL
 jpa.default.properties.hibernate.hbm2ddl.auto: update
 
 itau:
   contas:
-    url: 'http://localhost:9091'
+    url: ${ITAU_CONTAS_URL:'http://localhost:9091'}
 
 bcb:
   pix:
-    url: 'http://localhost:8082'
+    url: ${BCB_PIX_URL:'http://localhost:8082'}

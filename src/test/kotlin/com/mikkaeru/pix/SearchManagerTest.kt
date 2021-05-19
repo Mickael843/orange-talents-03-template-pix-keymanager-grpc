@@ -50,7 +50,7 @@ internal class SearchManagerTest(
             clientId = CLIENT_ID,
             type = KeyType.EMAIL,
             accountType = AccountType.CACC,
-            key = "teste@gmail.com",
+            value = "teste@gmail.com",
             account = associatedAccount()
         )
     }
@@ -72,7 +72,7 @@ internal class SearchManagerTest(
         with(response) {
             assertNotNull(response)
             assertThat(pixId, equalTo(pixKeySaved.id))
-            assertThat(pixKey.key, equalTo(pixKeySaved.key))
+            assertThat(pixKey.key, equalTo(pixKeySaved.value))
             assertThat(clientId, equalTo(pixKeySaved.clientId))
             assertThat(pixKey.type.name, equalTo(pixKeySaved.type.name))
 
@@ -97,13 +97,13 @@ internal class SearchManagerTest(
         val response = grpcClient.searchPixKey(
             SearchRequest
                 .newBuilder()
-                .setKey(pixKeySaved.key)
+                .setKey(pixKeySaved.value)
                 .build())
 
         with(response) {
             assertNotNull(response)
             assertThat(pixId, equalTo(pixKeySaved.id))
-            assertThat(pixKey.key, equalTo(pixKeySaved.key))
+            assertThat(pixKey.key, equalTo(pixKeySaved.value))
             assertThat(clientId, equalTo(pixKeySaved.clientId))
             assertThat(pixKey.type.name, equalTo(pixKeySaved.type.name))
 
@@ -123,18 +123,18 @@ internal class SearchManagerTest(
 
     @Test
     fun `deve buscar uma chave pix pela chave no sistema do banco do brasil`() {
-        `when`(bcbClient.searchPixKey(pixKeyTmp.key)).thenReturn(HttpResponse.ok(pixKeyDetailsResponse()))
+        `when`(bcbClient.searchPixKey(pixKeyTmp.value)).thenReturn(HttpResponse.ok(pixKeyDetailsResponse()))
 
         val response = grpcClient.searchPixKey(
             SearchRequest
                 .newBuilder()
-                .setKey(pixKeyTmp.key)
+                .setKey(pixKeyTmp.value)
                 .build())
 
         with(response) {
             assertThat(pixId, emptyOrNullString())
             assertThat(clientId, emptyOrNullString())
-            assertThat(pixKey.key, equalTo(pixKeyTmp.key))
+            assertThat(pixKey.key, equalTo(pixKeyTmp.value))
             assertThat(pixKey.type.name, equalTo(pixKeyTmp.type.name))
 
             with(pixKey.owner) {
@@ -174,13 +174,13 @@ internal class SearchManagerTest(
 
     @Test
     fun `deve retornar status 404  ao buscar uma chave pix no sistema do banco do brasil`() {
-        `when`(bcbClient.searchPixKey(pixKeyTmp.key)).thenReturn(HttpResponse.notFound())
+        `when`(bcbClient.searchPixKey(pixKeyTmp.value)).thenReturn(HttpResponse.notFound())
 
         val exception = assertThrows<StatusRuntimeException> {
             grpcClient.searchPixKey(
                 SearchRequest
                     .newBuilder()
-                    .setKey(pixKeyTmp.key)
+                    .setKey(pixKeyTmp.value)
                     .build()
             )
         }
@@ -252,7 +252,7 @@ internal class SearchManagerTest(
     private fun pixKeyDetailsResponse(): PixKeyDetailsResponse {
         return PixKeyDetailsResponse(
             keyType = pixKeyTmp.type,
-            key = pixKeyTmp.key,
+            key = pixKeyTmp.value,
             bankAccount = BankAccountRequest(
                 participant = pixKeyTmp.account.ispb,
                 branch = pixKeyTmp.account.agency,

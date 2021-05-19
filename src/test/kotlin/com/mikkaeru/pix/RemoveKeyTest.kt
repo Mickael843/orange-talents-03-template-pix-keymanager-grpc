@@ -53,7 +53,7 @@ internal class RemoveKeyTest(
             clientId = CLIENT_ID,
             type = RANDOM,
             accountType = CACC,
-            key = randomUUID().toString(),
+            value = randomUUID().toString(),
             account = AssociatedAccount(
                 agency = "0001",
                 number = "291900",
@@ -67,13 +67,13 @@ internal class RemoveKeyTest(
     @Test
     fun `deve remover uma chave pix`() {
         `when`(bcbClient.deleteKey(
-            key = pixKey.key,
+            key = pixKey.value,
             BcbDeleteKeyRequest(
-                key = pixKey.key,
+                key = pixKey.value,
                 participant = pixKey.account.ispb
             ))).thenReturn(HttpResponse.ok(
             BcbDeleteKeyResponse(
-                key = pixKey.key,
+                key = pixKey.value,
                 participant = pixKey.account.ispb,
                 deletedAt = LocalDateTime.now().toString()
             )))
@@ -96,9 +96,9 @@ internal class RemoveKeyTest(
     @Test
     fun `deve retornar status 404 na consulta ao banco central`() {
         `when`(bcbClient.deleteKey(
-            key = pixKey.key,
+            key = pixKey.value,
             BcbDeleteKeyRequest(
-                key = pixKey.key,
+                key = pixKey.value,
                 participant = pixKey.account.ispb
             ))).thenReturn(HttpResponse.notFound())
 
@@ -122,9 +122,9 @@ internal class RemoveKeyTest(
     @Test
     fun `deve retornar 403 na consulta ao banco central`() {
         `when`(bcbClient.deleteKey(
-            key = pixKey.key,
+            key = pixKey.value,
             BcbDeleteKeyRequest(
-                key = pixKey.key,
+                key = pixKey.value,
                 participant = pixKey.account.ispb
             ))).thenReturn(HttpResponse.status(FORBIDDEN))
 

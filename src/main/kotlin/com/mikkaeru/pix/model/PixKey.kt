@@ -28,7 +28,7 @@ class PixKey(
 
     @field:NotBlank
     @Column(nullable = false, unique = true)
-    val key: String,
+    val value: String,
 
     @Embedded
     @field:NotNull

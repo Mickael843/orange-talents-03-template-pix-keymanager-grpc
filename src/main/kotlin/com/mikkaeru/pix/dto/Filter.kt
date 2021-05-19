@@ -33,7 +33,7 @@ sealed class Filter {
         private val log = LoggerFactory.getLogger(this::class.java)
 
         override fun filter(repository: PixKeyRepository, bcbClient: BcbClient): PixKeyInfo {
-            return repository.findByKey(key)
+            return repository.findByValue(key)
                 .map(PixKeyInfo::of)
                 .orElseGet {
                     log.info("Consultando a chave Pix '$key' no Banco Central do Brasil (BCB)")

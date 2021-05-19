@@ -24,7 +24,7 @@ data class PixKeyInfo(
                 pixId = pixKey.id,
                 clientId = pixKey.clientId,
                 type = pixKey.type,
-                key = pixKey.key,
+                key = pixKey.value,
                 accountType = pixKey.accountType,
                 account = pixKey.account,
                 createAt = pixKey.createdAt

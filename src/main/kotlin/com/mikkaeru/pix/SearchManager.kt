@@ -37,7 +37,7 @@ class SearchManager(
             SearchAllResponse.PixKeyDetails.newBuilder()
                 .setPixId(it.id)
                 .setType(KeyType.valueOf(it.type.name))
-                .setKey(it.key)
+                .setKey(it.value)
                 .setAccountType(AccountType.valueOf(it.accountType.name))
                 .setCreateAt(
                     Timestamp.newBuilder().setNanos(it.createdAt.nano).setSeconds(it.createdAt.second.toLong()).build()

@@ -28,7 +28,7 @@ data class KeyRequest(
         return PixKey(
             clientId = this.clientId,
             type = this.type!!,
-            key = this.key,
+            value = this.key,
             accountType = this.accountType!!,
             account = account
         )
