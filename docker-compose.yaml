@@ -4,10 +4,15 @@ services:
     image: "public.ecr.aws/d8b2x5c9/orange-stack-sat-bcb-pix"
     ports:
       - 8082:8082
+    networks:
+      pix-network:
+
   erp-itau:
     image: "public.ecr.aws/d8b2x5c9/orange-stack-sat-itau-erp"
     ports:
       - 9091:9091
+    networks:
+      pix-network:
 
   mysql_db:
     image: mysql:latest
@@ -18,6 +23,29 @@ services:
       MYSQL_DATABASE: keymanager_db
     volumes:
       - mysql-volume:/var/lib/mysql
+    networks:
+      pix-network:
+
+  keymanager_grpc:
+    image: mikkaeru/keymanager_grpc
+    ports:
+      - 50051:50051
+    environment:
+      DATASOURCE_URL: jdbc:mysql://mysql_db:3306/keymanager_db
+      DATASOURCE_USERNAME: root
+      DATASOURCE_PASSWORD: admin
+      ITAU_CONTAS_URL: http://erp-itau:9091
+      BCB_PIX_URL: http://bcb:8082
+    depends_on:
+      - bcb
+      - erp-itau
+      - mysql_db
+    networks:
+      pix-network:
 
 volumes:
   mysql-volume:
+
+networks:
+  pix-network:
+    driver: bridge

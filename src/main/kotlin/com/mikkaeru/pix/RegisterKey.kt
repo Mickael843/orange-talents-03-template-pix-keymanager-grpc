@@ -9,6 +9,7 @@ import com.mikkaeru.pix.repository.PixKeyRepository
 import com.mikkaeru.pix.shared.exception.ExistingPixKeyException
 import com.mikkaeru.pix.shared.exception.NotFoundException
 import io.micronaut.validation.Validated
+import org.slf4j.LoggerFactory
 import javax.inject.Inject
 import javax.inject.Singleton
 import javax.transaction.Transactional
@@ -21,6 +22,8 @@ class RegisterKey(
     @Inject private val itauClient: ItauClient,
     @Inject private val repository: PixKeyRepository
 ) {
+
+    private val log = LoggerFactory.getLogger(this.javaClass)
 
     @Transactional
     fun register(@Valid request: KeyRequest): PixKey {
@@ -39,6 +42,8 @@ class RegisterKey(
         val pixKey: PixKey?
         val pixKeyTmp = request.toModel(account)
 
+
+        log.info("Registrando a chave pix '${request.key}' do clientId ${request.clientId}")
         bcbClient.registerKey(pixKeyTmp.toBcbKeyRequest()).also {
             if (it.status.code == 422) {
                 throw ExistingPixKeyException("Chave pix ${request.key} já cadastrada no Banco central")

@@ -8,6 +8,7 @@ import com.mikkaeru.pix.repository.PixKeyRepository
 import com.mikkaeru.pix.shared.exception.ForbiddenException
 import com.mikkaeru.pix.shared.exception.NotFoundException
 import io.micronaut.validation.Validated
+import org.slf4j.LoggerFactory
 import javax.inject.Inject
 import javax.inject.Singleton
 import javax.transaction.Transactional
@@ -20,10 +21,14 @@ class RemoveKey(
     @Inject private val repository: PixKeyRepository
 ) {
 
+    private val log = LoggerFactory.getLogger(this.javaClass)
+
     @Transactional
     fun remove(@Valid request: RemoveKeyRequest): RemoveKeyPixResponse {
         val pixKey = repository.findByIdAndClientId(request.pixId, request.clientId)
             .orElseThrow { throw NotFoundException("Chave pix correspondente ao id ${request.pixId} não foi encontrada!") }
+
+        log.info("Deletando a chave pix no banco central (BCB) para o clientId ${request.clientId}")
 
         bcbClient.deleteKey(
             key = pixKey.value,
