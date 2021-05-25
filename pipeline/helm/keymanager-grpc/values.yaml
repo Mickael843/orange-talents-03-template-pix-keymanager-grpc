@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: nginx
+  repository: public.ecr.aws/d8b2x5c9/orange-stack-pix-keymanager-grpc
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
@@ -18,7 +18,9 @@ serviceAccount:
   # Specifies whether a service account should be created
   create: true
   # Annotations to add to the service account
-  annotations: {}
+  annotations: {
+    service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+  }
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
@@ -56,6 +58,16 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+
+application:
+  # Mudar o localhost por um endereço ip da aws
+  DB_URI: jdbc:mysql://localhost:3306/keymanager_db
+  DB_USER: root
+  DB_PASSWORD: admin
+  DB_DIALECT: MYSQL
+  # Utilizar o externalId gerado na aws
+  ITAU_URL: http://localhost:9091
+  BCB_URL: http://localhost:8082
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
