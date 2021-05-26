@@ -27,12 +27,10 @@ class RegisterKey(
 
     @Transactional
     fun register(@Valid request: KeyRequest): PixKey {
-        request.run {
-            type!!.validate(key)
-        }
-
         if (repository.existsByValue(request.key)) {
-            throw ExistingPixKeyException("Chave pix ${request.key} existente")
+            throw ExistingPixKeyException("Chave pix ${request.key} existente").also {
+                log.info("[${request.clientId}] chave pix '${request.key}' já cadastrada")
+            }
         }
 
         val itauResponse = itauClient.findAccountById(request.clientId, request.accountType!!.equivalentName)
@@ -42,11 +40,13 @@ class RegisterKey(
         val pixKey: PixKey?
         val pixKeyTmp = request.toModel(account)
 
-
-        log.info("Registrando a chave pix '${request.key}' do clientId ${request.clientId}")
         bcbClient.registerKey(pixKeyTmp.toBcbKeyRequest()).also {
+            log.info("[${request.clientId}] registrando chave pix no sistema do banco central(BCB)")
+
             if (it.status.code == 422) {
-                throw ExistingPixKeyException("Chave pix ${request.key} já cadastrada no Banco central")
+                throw ExistingPixKeyException("Chave pix ${request.key} já cadastrada no Banco central").also {
+                    log.info("[${request.clientId}] chave pix '${request.key}' já cadastrada no sistema do banco central(BCB)")
+                }
             }
 
             val body = it.body()!!

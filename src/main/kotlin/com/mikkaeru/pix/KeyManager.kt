@@ -19,9 +19,9 @@ class KeyManager(
     private val log = LoggerFactory.getLogger(this.javaClass)
 
     override fun registerPixKey(request: KeyPixRequest?, responseObserver: StreamObserver<KeyPixResponse>?) {
-        log.info("Registrando chave pix para o clientId ${request?.clientId}")
-
-        val pixKey = registerKey.register(request!!.toKeyRequest())
+        val pixKey = registerKey.register(request!!.toKeyRequest()).also {
+            log.info("[${request.clientId}] Registrou uma chave pix")
+        }
 
         responseObserver?.onNext(
             KeyPixResponse.newBuilder()
@@ -34,7 +34,6 @@ class KeyManager(
     }
 
     override fun removePixKey(request: RemoveKeyPixRequest?, responseObserver: StreamObserver<RemoveKeyPixResponse>?) {
-        log.info("Removendo a chave pix para o clintId ${request?.clientId}")
         responseObserver?.onNext(removeKey.remove(request!!.toRemoveKeyRequest()))
         responseObserver?.onCompleted()
     }

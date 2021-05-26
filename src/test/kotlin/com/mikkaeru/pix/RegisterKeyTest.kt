@@ -12,7 +12,6 @@ import com.mikkaeru.pix.model.AssociatedAccount
 import com.mikkaeru.pix.model.KeyType
 import com.mikkaeru.pix.model.PixKey
 import com.mikkaeru.pix.repository.PixKeyRepository
-import io.grpc.Status
 import io.grpc.Status.*
 import io.grpc.StatusRuntimeException
 import io.micronaut.http.HttpResponse
@@ -97,7 +96,8 @@ internal class KeyManagerTest(
         }
 
         with(exception) {
-            assertThat(status.code, equalTo(Status.ALREADY_EXISTS.code))
+            assertEquals(0, repository.count())
+            assertThat(status.code, equalTo(ALREADY_EXISTS.code))
             assertThat(status.description, containsStringIgnoringCase("Chave pix ${request.key} já cadastrada no Banco central"))
         }
 
@@ -145,6 +145,7 @@ internal class KeyManagerTest(
         }
 
         with(exception) {
+            assertEquals(0, repository.count())
             assertThat(status.code, equalTo(INVALID_ARGUMENT.code))
             assertThat(status.description, containsStringIgnoringCase("O tipo da chave não pode ser nulo!"))
         }
@@ -157,50 +158,35 @@ internal class KeyManagerTest(
         }
 
         with(exception) {
+            assertEquals(0, repository.count())
             assertThat(status.code, equalTo(INVALID_ARGUMENT.code))
             assertThat(status.description, containsStringIgnoringCase("O tipo da conta não pode ser nulo!"))
         }
     }
 
     @Test
-    fun `nao deve cadastrar a chave pix ao passar valor maior que 77 caracteres`() {
-        val value = "Um texto qualquer que deve ter mais ou menos um pouco mais de 77 caracteres que irão causar erro."
-
-        val exception = assertThrows<StatusRuntimeException> {
-            grpcClient.registerPixKey(
-                request.setKey(value)
-                    .setType(EMAIL)
-                    .build()
-            )
-        }
-
-        with(exception) {
-            assertThat(status.code, equalTo(INVALID_ARGUMENT.code))
-            assertThat(status.description, containsStringIgnoringCase("O valor maximo de caracteres é de 77!"))
-        }
-    }
-
-    @Test
     fun `nao deve cadastrar a chave pix ao passar cpf invalido`() {
         val exception = assertThrows<StatusRuntimeException> {
-            grpcClient.registerPixKey(request.setKey("123456").setType(CPF).build())
+            grpcClient.registerPixKey(request.setKey("13465785890").setType(CPF).build())
         }
 
         with(exception) {
+            assertEquals(0, repository.count())
             assertThat(status.code, equalTo(INVALID_ARGUMENT.code))
-            assertThat(status.description, containsStringIgnoringCase("CPF invalido"))
+            assertThat(status.description, containsStringIgnoringCase("Invalid format CPF"))
         }
     }
 
     @Test
     fun `nao deve cadastrar a chave pix ao passar numero de telefone invalido`() {
         val exception = assertThrows<StatusRuntimeException> {
-            grpcClient.registerPixKey(request.setKey("1234").setType(PHONE).build())
+            grpcClient.registerPixKey(request.setKey("999309941").setType(PHONE).build())
         }
 
         with(exception) {
+            assertEquals(0, repository.count())
             assertThat(status.code, equalTo(INVALID_ARGUMENT.code))
-            assertThat(status.description, containsStringIgnoringCase("Numero de telefone invalido!"))
+            assertThat(status.description, containsStringIgnoringCase("Invalid format PHONE"))
         }
     }
 
@@ -214,6 +200,7 @@ internal class KeyManagerTest(
         }
 
         with(exception) {
+            assertEquals(0, repository.count())
             assertThat(status.code, equalTo(NOT_FOUND.code))
             assertThat(status.description, containsStringIgnoringCase("Cliente não encontrado"))
         }
@@ -244,6 +231,7 @@ internal class KeyManagerTest(
         }
 
         with(exception) {
+            assertEquals(1, repository.count())
             assertThat(status.code, equalTo(ALREADY_EXISTS.code))
             assertThat(status.description, containsStringIgnoringCase("Chave pix ${pixKey.value} existente"))
         }

@@ -1,5 +1,6 @@
 package com.mikkaeru.pix.dto
 
+import com.mikkaeru.pix.ValidPixKey
 import com.mikkaeru.pix.model.AccountType
 import com.mikkaeru.pix.model.AssociatedAccount
 import com.mikkaeru.pix.model.KeyType
@@ -9,6 +10,7 @@ import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
 import javax.validation.constraints.Size
 
+@ValidPixKey
 @Introspected
 data class KeyRequest(
     @field:NotBlank(message = "clientId não estar em branco!")

@@ -28,22 +28,26 @@ class RemoveKey(
         val pixKey = repository.findByIdAndClientId(request.pixId, request.clientId)
             .orElseThrow { throw NotFoundException("Chave pix correspondente ao id ${request.pixId} não foi encontrada!") }
 
-        log.info("Deletando a chave pix no banco central (BCB) para o clientId ${request.clientId}")
-
         bcbClient.deleteKey(
             key = pixKey.value,
             request = BcbDeleteKeyRequest(
                 key = pixKey.value,
                 participant = pixKey.account.ispb
             )).let {
-                if (it.status.code == 403) {
-                    throw ForbiddenException("Proibido a remoção dessa chave pix")
-                } else if (it.status.code == 404) {
-                    throw NotFoundException("Chave pix correspondente ao id ${request.pixId} não foi encontrada no banco central")
+            log.info("[${request.clientId}] Deletando a chave pix no banco central (BCB)")
+
+            if (it.status.code == 403) {
+                throw ForbiddenException("Proibido a remoção dessa chave pix").also {
+                    log.info("[${request.clientId}] Proibido remoção da chave pix no banco central (BCB)")
                 }
+            } else if (it.status.code == 404) {
+                throw NotFoundException("Chave pix correspondente ao id ${request.pixId} não foi encontrada no banco central")
+            }
         }
 
-        repository.delete(pixKey)
+        repository.delete(pixKey).also {
+            log.info("[${request.clientId}] Chave pix com o id '${request.pixId}' deletada")
+        }
 
         return RemoveKeyPixResponse
             .newBuilder()

@@ -54,6 +54,9 @@ dependencies {
     testImplementation("com.h2database:h2")
     testImplementation("org.mockito:mockito-core")
     implementation("io.micronaut.xml:micronaut-jackson-xml")
+
+    implementation("io.micronaut:micronaut-validation")
+    implementation("org.hibernate.validator:hibernate-validator:6.1.2.Final")
 }
 
 
