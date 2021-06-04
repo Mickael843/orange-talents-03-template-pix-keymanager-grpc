@@ -31,9 +31,6 @@ labels:
 container:
   port: 50051
 
-# Pegar os valores das variáveis de ambiente na aws
-# senha em base64 Q1pubjdDNnZkcHRDbXN3TGpnZ2o=
-# senha CZnn7C6vdptCmswLjggj
 application:
   DB_URI: jdbc:mysql://keymanager-grpc-db-mickael.cvkl7pbhtcev.us-east-1.rds.amazonaws.com:3306/keymanager
   DB_USER: admin
