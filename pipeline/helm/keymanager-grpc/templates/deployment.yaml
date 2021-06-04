@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "keymanager-grpc.fullname" . }}
+  name: {{ .Values.deployment.name }}
   labels:
-    {{- include "keymanager-grpc.labels" . | nindent 4 }}
+    app: {{ .Values.labels.app }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "keymanager-grpc.selectorLabels" . | nindent 6 }}
+      app: {{ .Values.labels.app }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,24 +18,20 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "keymanager-grpc.selectorLabels" . | nindent 8 }}
+        app: {{ .Values.labels.app }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "keymanager-grpc.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 80
+              containerPort: {{ .Values.container.port }}
               protocol: TCP
 #          livenessProbe:
 #            httpGet:
@@ -47,9 +43,9 @@ spec:
 #              port: http
           envFrom:
             - configMapRef:
-                name: orange-talents-03-template-pix-keymanager-grpc-configmap
+                name: {{ .Values.configMap.name }}
             - secretRef:
-                name: orange-talents-03-template-pix-keymanager-grpc-secrets
+                name: {{ .Values.secret.name }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

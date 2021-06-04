@@ -4,70 +4,71 @@
 
 replicaCount: 1
 
+deployment:
+  name: keymanager-grpc-deployment
+
+horizontalPodAutoscaler:
+  name: keymanager-grpc-hpa
+
+configMap:
+  name: keymanager-grpc-configmap
+
+secret:
+  name: keymanager-grpc-secrets
+
 image:
-  repository: public.ecr.aws/d8b2x5c9/orange-stack-pix-keymanager-grpc
+  repository: mickael32/keymanager-grpc
   pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "latest"
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+labels:
+  app: keymanager-grpc
+
+container:
+  port: 50051
+
+# Pegar os valores das variáveis de ambiente na aws
+# senha em base64 Q1pubjdDNnZkcHRDbXN3TGpnZ2o=
+# senha CZnn7C6vdptCmswLjggj
+application:
+  DB_URI: jdbc:mysql://keymanager-grpc-db-mickael.cvkl7pbhtcev.us-east-1.rds.amazonaws.com:3306/keymanager
+  DB_USER: admin
+  DB_PASSWORD: CZnn7C6vdptCmswLjggj
+  DB_DIALECT: MYSQL
+  ITAU_URL: internal-ac473dd79dd3d45438f40d619c4e7ea9-2067615937.us-east-1.elb.amazonaws.com
+  BCB_URL: internal-abcd1dc883b944d5f8b43cd6aad7ec1d-240028978.us-east-1.elb.amazonaws.com
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
   # Annotations to add to the service account
-  annotations: {
-    service.beta.kubernetes.io/aws-load-balancer-internal: "true"
-  }
+  annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: ""
+  name: "keymanager-grpc-service-account"
 
 podAnnotations: {}
 
-podSecurityContext: {}
-  # fsGroup: 2000
-
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-
 service:
+  name: keymanager-grpc-service
   type: ClusterIP
-  port: 80
+  port: 50051
 
-ingress:
-  enabled: false
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
   hosts:
     - host: chart-example.local
       paths:
       - path: /
         backend:
           serviceName: chart-example.local
-          servicePort: 80
+          servicePort: 50051
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
-
-application:
-  # Mudar o localhost por um endereço ip da aws
-  DB_URI: jdbc:mysql://localhost:3306/keymanager_db
-  DB_USER: root
-  DB_PASSWORD: admin
-  DB_DIALECT: MYSQL
-  # Utilizar o externalId gerado na aws
-  ITAU_URL: http://localhost:9091
-  BCB_URL: http://localhost:8082
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
